@@ -1,31 +1,42 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI/cd
+name: Node.js CI/CD
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master" ]  # or "main", depending on your default branch
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: self-hosted  # Runs on your self-hosted runner
 
     strategy:
       matrix:
-        node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [22.x]  # Specify the Node.js versions to test (current is 22.x)
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: |
-        touch .env
-        echo "${{secrets.PROD_ENV_FILE}}" > .env
-    - run: pm2 restart nest-app
+      # Step 1: Check out the repository
+      - uses: actions/checkout@v4
 
+      # Step 2: Set up Node.js with caching of npm dependencies
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'  # Cache dependencies
+
+      # Step 3: Install the dependencies
+      - run: npm ci  # Clean install, it ensures dependencies are installed fresh
+
+      # Step 4: Create and set environment variables
+      - run: |
+          touch .env  # Create an empty .env file if it doesn't exist
+          echo "${{secrets.PROD_ENV_FILE}}" > .env  # Write secret environment variable to .env
+
+      # Step 5: Build the project (ensure the project is built before starting)
+      - run: npm run build  # Assuming you have a build script in package.json
+
+      # Step 6: Restart the NestJS app with PM2 (ensure your app is started after build)
+      - run: pm2 restart nest-app || pm2 start dist/main.js --name nest-app  # Restart or start the app if not already running
+
+      # Step 7: (Optional) Reload Nginx (if you need to reload after changes)
+      - run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@<your-ec2-ip> "sudo systemctl reload nginx"
