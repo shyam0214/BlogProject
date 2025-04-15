@@ -38,5 +38,5 @@ jobs:
       - run: pm2 restart nest-app || pm2 start dist/main.js --name nest-app  # Restart or start the app if not already running
 
       # Step 7: (Optional) Reload Nginx (if you need to reload after changes)
-      - run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@<34.235.87.94> "sudo systemctl reload nginx"
+      - run: sudo systemctl reload nginx
+
