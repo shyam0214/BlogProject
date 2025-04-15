@@ -39,4 +39,4 @@ jobs:
 
       # Step 7: (Optional) Reload Nginx (if you need to reload after changes)
       - run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@<your-ec2-ip> "sudo systemctl reload nginx"
+          ssh -o StrictHostKeyChecking=no ec2-user@<34.235.87.94> "sudo systemctl reload nginx"
